@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Entrada da GUI; a ferramenta de console continua em multi_roblox.py."""
+"""Entrada da GUI. O .spec gera um único executável Windows sem console."""
 
 import argparse
 import os
@@ -16,6 +16,17 @@ def main(argv=None):
     if os.name != "nt" and not args.smoke_test:
         print("O aplicativo requer Windows 10/11.", file=sys.stderr)
         return 2
+
+    if args.smoke_test and os.name == "nt" and getattr(sys, "frozen", False):
+        import ctypes
+        from ctypes import wintypes
+
+        # Valida o build real: o processo gráfico não deve estar ligado a console.
+        api = ctypes.WinDLL("kernel32.dll", use_last_error=True)
+        api.GetConsoleWindow.argtypes = []
+        api.GetConsoleWindow.restype = wintypes.HWND
+        if api.GetConsoleWindow():
+            raise RuntimeError("O executável está ligado a um console. Recompile usando o .spec oficial.")
 
     from roblox_tools.gui import run_application
 

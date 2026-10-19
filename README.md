@@ -2,6 +2,7 @@
 
 Aplicativo Windows com interface escura em **CustomTkinter**, multi-instância,
 prioridade de CPU por janela ativa e ajuste reversível do limite de FPS.
+A versão 2.1 usa cards de desempenho lado a lado e histórico recolhível.
 Código aberto sob licença MIT. O modo de console original continua disponível.
 
 ![Interface escura do Multi Roblox](docs/desktop.png)
@@ -20,7 +21,7 @@ No PowerShell, use uma pasta do seu usuário, evitando `C:\Windows\System32`:
 cd $env:USERPROFILE
 git clone https://github.com/RexJohnson679/multiplas-contas-roblox.git
 cd multiplas-contas-roblox
-py -3.13 -m venv .venv
+py -3 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe desktop_app.py
 ```
@@ -122,7 +123,7 @@ Os arquivos ficam fora da instalação, em uma pasta gravável pelo usuário:
     app.log           # diagnóstico local, com rotação
 ```
 
-O botão **Pasta de configurações** abre essa pasta. As opções são salvas a cada
+O botão **Pasta** na sidebar abre essa pasta. As opções são salvas a cada
 mudança e reativadas na próxima abertura. Fechar a janela restaura os efeitos sem
 apagar suas preferências. Um `config.json` inválido é preservado com nome
 `config.invalid-*.json` antes de carregar os padrões. Gravações são atômicas.
@@ -140,12 +141,23 @@ Exemplo usando a `.venv` criada acima:
 .\.venv\Scripts\python.exe -m PyInstaller --noconfirm --clean MultiplasContasRoblox.spec
 ```
 
-Resultado: `dist\MultiplasContasRoblox\MultiplasContasRoblox.exe`.
-Distribua **a pasta inteira**, incluindo `_internal`, não apenas o executável.
-Não é necessário instalar Python na máquina de quem usar o pacote.
+Resultado: **`dist\MultiplasContasRoblox.exe`**, um único arquivo sem console.
+O `.spec` já define o equivalente a **`--onefile --noconsole`**, com `console=False`,
+e incorpora fontes, temas e bibliotecas. Não exige variável de ambiente.
+
+**Abra esse `.exe` com dois cliques no Explorador de Arquivos.** Apenas a interface
+gráfica aparece, e o programa funciona sem PowerShell aberto. Para começar agora:
+
+```powershell
+Start-Process .\dist\MultiplasContasRoblox.exe
+```
+
+Depois de compilado, não é necessário instalar Python para executar esse arquivo.
+O modo de fonte `python desktop_app.py` continua ligado ao terminal que o iniciou;
+use o executável para o funcionamento independente do console.
 
 O workflow [Build Windows](.github/workflows/build-windows.yml) também compila no
-GitHub Actions, testa a abertura do pacote e disponibiliza um artefato para baixar
+GitHub Actions, verifica o subsistema gráfico e testa a abertura do executável e disponibiliza um artefato para baixar
 em **Actions → Build Windows → execução concluída → Artifacts**. Isso depende de o
 workflow terminar com sucesso; nenhum binário é incluído no código-fonte.
 

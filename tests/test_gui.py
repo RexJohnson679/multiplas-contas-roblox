@@ -32,6 +32,11 @@ class GuiTests(unittest.TestCase):
             app = gui.DesktopApp(store, store.load(), smoke_test=True)
             closed = False
             try:
+                with self.assertLogs("multiroblox", level="WARNING"):
+                    app._log("Alerta de teste", "warning")
+                self.assertTrue(app.activity_visible)
+                app._toggle_activity()
+                self.assertFalse(app.activity_visible)
                 with patch.object(gui, "multi_instance_task", task):
                     app.variables["multi_instance"].set(True)
                     app._toggle("multi_instance")
@@ -39,6 +44,7 @@ class GuiTests(unittest.TestCase):
                     app._drain_events()
                     app.update_idletasks()
                     self.assertEqual(app.statuses["multi_instance"].cget("text"), "Ativo")
+                    self.assertIn("1 ativo", app.session_pill.cget("text"))
                     self.assertTrue(store.load().multi_instance)
                     worker = app.workers["multi_instance"]
                     app._start("multi_instance")

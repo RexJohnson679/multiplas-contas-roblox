@@ -1,10 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""Build Windows. MULTIROBLOX_ONEFILE=1 seleciona o pacote de arquivo único."""
+"""Build único e sem console: equivalente a --onefile --noconsole."""
 
-import os
 from PyInstaller.utils.hooks import collect_data_files, copy_metadata
 
-onefile = os.environ.get("MULTIROBLOX_ONEFILE") == "1"
 resources = collect_data_files("customtkinter")
 resources += [("LICENSE", "licenses/multiplas-contas-roblox")]
 # Inclui as licenças das dependências e a exceção do bootloader do PyInstaller.
@@ -18,12 +16,8 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure)
-options = dict(
+exe = EXE(
+    pyz, a.scripts, a.binaries, a.datas, [],
     name="MultiplasContasRoblox", debug=False, bootloader_ignore_signals=False,
     strip=False, upx=False, console=False, disable_windowed_traceback=False,
 )
-if onefile:
-    exe = EXE(pyz, a.scripts, a.binaries, a.datas, [], **options)
-else:
-    exe = EXE(pyz, a.scripts, [], exclude_binaries=True, **options)
-    coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name=options["name"])
