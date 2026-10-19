@@ -1,0 +1,50 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '*.py'
+      - 'roblox_tools/**'
+      - 'requirements*.txt'
+      - '*.spec'
+      - '.github/workflows/build-windows.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r requirements-build.txt
+      - run: python -m unittest discover -s tests -v
+      - run: python desktop_app.py --smoke-test
+      - run: python -m PyInstaller --noconfirm --clean MultiplasContasRoblox.spec
+      - name: Check packaged application
+        shell: pwsh
+        run: |
+          $app = Start-Process -FilePath '.\dist\MultiplasContasRoblox\MultiplasContasRoblox.exe' -ArgumentList '--smoke-test' -PassThru
+          if (-not $app.WaitForExit(30000)) {
+            $app.Kill()
+            throw 'Packaged application timed out'
+          }
+          if ($app.ExitCode -ne 0) { throw "Packaged application exited with $($app.ExitCode)" }
+      - name: Record build environment and hashes
+        shell: pwsh
+        run: |
+          python -m pip freeze | Set-Content -Encoding utf8 dist\MultiplasContasRoblox\build-environment.txt
+          Get-ChildItem dist\MultiplasContasRoblox -Recurse -File |
+            ForEach-Object { Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName } |
+            Format-Table -AutoSize | Out-String -Width 4096 | Set-Content -Encoding utf8 dist\SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MultiplasContasRoblox-Windows
+          path: |
+            dist/MultiplasContasRoblox/
+            dist/SHA256.txt
